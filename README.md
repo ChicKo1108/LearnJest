@@ -100,3 +100,63 @@ describe('异步测试', () => {
     })
 });
 ```
+
+jest提供两个方法`jest.useFakeTimers`和`jest.runAllTimers`可以更优雅的对延时功能进行测试。
+
+```js
+describe('定时器相关测试', () => {
+    // 开启定时函数模拟
+    jest.useFakeTimers();
+
+    function foo(callback) {
+        console.log('foo...')
+        setTimeout(() => {
+            callback && callback();
+        }, 1000)
+    }
+    it('断言异步测试', () => {
+        //创建mock函数，用于断言函数被执行或是执行次数的判断
+        const callback = jest.fn();
+        foo(callback);
+        expect(callback).not.toBeCalled();
+        //快进，使所有定时器回调
+        jest.runAllTimers();
+        expect(callback).toBeCalled();
+    })
+});
+```
+
+#### DOM测试
+
+实现dom渲染测试，以及点击事件等交互功能测试。
+
+```js
+describe('Dom测试', () => {
+    it('测试按钮是否被渲染 ', () => {
+        document.body.innerHTML = `
+    <div>
+        <button id='btn'>小按钮</button>
+    </div> `
+        console.log(document.getElementById('btn'), document.getElementById('btn').toString())
+        expect(document.getElementById('btn')).not.toBeNull();
+        expect(document.getElementById('btn').toString()).toBe("[object HTMLButtonElement]");
+    });
+
+    it('测试点击事件', () => {
+        const onclick = jest.fn();
+        document.body.innerHTML = `
+        <div>
+            <button id='btn'>小按钮</button>
+        </div> `
+        const btn = document.getElementById('btn');
+        expect(onclick).not.toBeCalled();
+        btn.onclick = onclick;
+        btn.click();
+        expect(onclick).toBeCalled();
+        expect(onclick).toHaveBeenCalledTimes(1);
+        btn.click();
+        btn.click();
+        expect(onclick).toHaveBeenCalledTimes(3);
+    });
+});
+```
